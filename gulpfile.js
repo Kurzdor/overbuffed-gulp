@@ -3,7 +3,6 @@
 var gulp = require('gulp'),
     bsync = require('browser-sync'),
     pump = require('pump'),
-    rev = require('gulp-rev-append'),
     sourcemaps = require('gulp-sourcemaps'),
     scss = require('gulp-sass'),
     prefix = require('gulp-autoprefixer'),
@@ -73,9 +72,8 @@ gulp.task('favicon', function() {
 
 gulp.task('html', function() {
   return pump([
-    gulp.src('src/index.html'),
+    gulp.src(dir.src.html),
     gIf(isDevelopment, changed(dir.build.html)),
-    gIf(!isDevelopment, rev()),
     gIf(!isDevelopment, gulp.dest(dir.dist.html)),
     gIf(isDevelopment, gulp.dest(dir.build.html))
   ]);
@@ -121,10 +119,14 @@ gulp.task('js', function () {
         paths: ['.', '/node_modules'],
         transform: [
           babelify.configure({ presets: ['env'] }),
-          [ 'uglifyify', { global: true } ]
+          ['uglifyify', { 
+            global: true,
+            compress: {
+              passes: 2
+            }
+          }]
         ]
       }),
-      // babel(),
       rename({
         basename: 'script'
       }),

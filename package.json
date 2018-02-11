@@ -19,7 +19,6 @@
     "babel-preset-env": "^1.6.1",
     "babelify": "^8.0.0",
     "browser-sync": "^2.23.6",
-    "event-stream": "^3.3.4",
     "gulp": "github:gulpjs/gulp#v4.0.0-alpha.3",
     "gulp-autoprefixer": "^4.1.0",
     "gulp-babel": "^7.0.1",
