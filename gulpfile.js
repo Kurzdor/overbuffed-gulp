@@ -73,7 +73,7 @@ gulp.task('favicon', function() {
 
 gulp.task('html', function() {
   return pump([
-    gulp.src('src/index.html'),
+    gulp.src(dir.src.html),
     gIf(isDevelopment, changed(dir.build.html)),
     gIf(!isDevelopment, rev()),
     gIf(!isDevelopment, gulp.dest(dir.dist.html)),
