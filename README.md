@@ -1,5 +1,8 @@
 # overbuffed-gulp
 
+## Warning
+Supports Linux-based systems only or WSL (Windows Subsystem for Linux)!
+
 ## Installation
 ```sh
 $ npm i
