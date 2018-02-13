@@ -65,7 +65,7 @@ var gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod';
 console.log(isDevelopment ? '[OVERBUFFED-GULP] Building dev...' : '[OVERBUFFED-GULP] Building production...');
 
 gulp.task('favicon', function() {
-    return gulp.src('src/favicon.ico')
+    return gulp.src('src/favicon.ico', { allowEmpty: true })
       .pipe(gIf(isDevelopment, gulp.dest(dir.build.html)))
       .pipe(gIf(!isDevelopment, gulp.dest(dir.dist.html)))
 });
@@ -93,14 +93,10 @@ gulp.task('scss', function() {
     gulp.src(dir.src.scss),
     gIf(isDevelopment, changed(dir.build.css)),
     gIf(isDevelopment, sourcemaps.init()),
-    gIf(isDevelopment, scss({
+    scss({
       outputStyle: 'expanded',
       includePaths: ['./node_modules/']
-    }).on('error', scss.logError)),
-    gIf(!isDevelopment, scss({
-      outputStyle: 'compressed',
-      includePaths: ['./node_modules/']
-    }).on('error', scss.logError)),
+    }).on('error', scss.logError),
     prefix({
       browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6']
     }),
@@ -112,7 +108,7 @@ gulp.task('scss', function() {
 
 gulp.task('js', function () {
   return pump([
-      gulp.src(dir.src.js),
+      gulp.src(dir.src.js, { allowEmpty: true }),
       gIf(isDevelopment, sourcemaps.init()),
       bro({
         entries: ['index.js'],
@@ -140,12 +136,12 @@ gulp.task('img', function () {
   return pump([
     gulp.src(dir.src.img),
     gIf(isDevelopment, changed(dir.build.img)),
-    imagemin({
-        progressive: true,
-        svgoPlugins: [{removeViewBox: false}],
-        use: [pngquant()],
-        interlaced: true
-    }),
+    gIf(!isDevelopment, imagemin({
+      progressive: true,
+      svgoPlugins: [{removeViewBox: false}],
+      use: [pngquant()],
+      interlaced: true
+    })),
     gIf(isDevelopment, gulp.dest(dir.build.img)),
     gIf(!isDevelopment, gulp.dest(dir.dist.img)),
   ]);
@@ -153,7 +149,7 @@ gulp.task('img', function () {
 
 gulp.task('fonts', function () {
   return pump([
-    gulp.src(dir.src.fonts),
+    gulp.src(dir.src.fonts, { allowEmpty: true }),
     gIf(isDevelopment, changed(dir.build.fonts)),
     gIf(isDevelopment, gulp.dest(dir.build.fonts)),
     gIf(!isDevelopment, gulp.dest(dir.dist.fonts))
