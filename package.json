@@ -1,12 +1,12 @@
 {
   "name": "overbuffed-gulp",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "description": "overbuffed-gulp is boilerplate with gulp, scss, babel, etc.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "rm -rf ./tmp && ./node_modules/.bin/gulp",
-    "build": "rm -rf dist && NODE_ENV=p ./node_modules/.bin/gulp"
+    "build": "rm -rf www && NODE_ENV=p ./node_modules/.bin/gulp"
   },
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "uglifyify": "^4.0.5"
   },
   "dependencies": {
-    "normalize.css": "^8.0.0"
+    "jquery": "^3.3.1",
+    "normalize-scss": "^7.0.1"
   }
 }

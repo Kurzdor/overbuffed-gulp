@@ -13,7 +13,6 @@ var rename = require('gulp-rename');
 var changed = require('gulp-changed');
 var gIf = require('gulp-if');
 var imagemin = require('gulp-imagemin');
-// var pngquant = require('imagemin-pngquant');
 
 var dir = {
   builddist: './tmp/build/',
@@ -113,10 +112,7 @@ gulp.task('js', function (cb) {
         babelify.configure({ presets: ['env'] }),
         [
           'uglifyify', {
-            global: true,
-            // compress: {
-            //   passes: 2
-            // }
+            global: true
           }
         ]
       ]
@@ -133,13 +129,6 @@ gulp.task('img', function (cb) {
   return pump([
     gulp.src(dir.src.img),
     gIf(isDevelopment, changed(dir.build.img)),
-    // gIf(!isDevelopment, imagemin({
-    //   progressive: true,
-    //   svgoPlugins: [{removeViewBox: false}],
-    //   // use: [pngquant()],
-
-    //   interlaced: true
-    // })),
     gIf(!isDevelopment, imagemin([
       imagemin.gifsicle({ interlaced: true }),
       imagemin.jpegtran({ progressive: true }),
