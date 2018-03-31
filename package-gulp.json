@@ -1,0 +1,39 @@
+{
+  "name": "overbuffed-gulp",
+  "version": "1.4.0",
+  "description": "overbuffed-gulp is boilerplate with gulp, scss, babel, etc.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "rm -rf ./tmp && ./node_modules/.bin/gulp",
+    "build": "rm -rf dist && NODE_ENV=p ./node_modules/.bin/gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/kurzdor/overgulped"
+  },
+  "author": "Kurzdor",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babelify": "^8.0.0",
+    "browser-sync": "^2.23.6",
+    "gulp": "^4.0.0",
+    "gulp-autoprefixer": "^4.1.0",
+    "gulp-babel": "^7.0.1",
+    "gulp-bro": "^1.0.3",
+    "gulp-changed": "^3.2.0",
+    "gulp-if": "^2.0.2",
+    "gulp-imagemin": "^4.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "imagemin-pngquant": "^5.0.1",
+    "pump": "^3.0.0",
+    "uglifyify": "^4.0.5"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.0"
+  }
+}
