@@ -13,7 +13,7 @@ var rename = require('gulp-rename');
 var changed = require('gulp-changed');
 var gIf = require('gulp-if');
 var imagemin = require('gulp-imagemin');
-var pngquant = require('imagemin-pngquant');
+// var pngquant = require('imagemin-pngquant');
 
 var dir = {
   builddist: './tmp/build/',
@@ -64,28 +64,28 @@ var gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod';
 
 console.log(isDevelopment ? '[OVERBUFFED-GULP] Building dev...' : '[OVERBUFFED-GULP] Building production...');
 
-gulp.task('favicon', function() {
-  return gulp.src('src/favicon.ico', {allowEmpty: true})
-    .pipe(gulp.dest(isDevelopment?dir.build.html:dir.dist.html));
+gulp.task('favicon', function () {
+  return gulp.src('src/favicon.ico', { allowEmpty: true })
+    .pipe(gulp.dest(isDevelopment ? dir.build.html : dir.dist.html));
 });
 
-gulp.task('html', function(cb) {
+gulp.task('html', function (cb) {
   return pump([
     gulp.src(dir.src.html),
     gIf(isDevelopment, changed(dir.build.html)),
-    gulp.dest(isDevelopment?dir.build.html:dir.dist.html),
+    gulp.dest(isDevelopment ? dir.build.html : dir.dist.html),
   ], cb);
 });
 
-gulp.task('css', function(cb) {
+gulp.task('css', function (cb) {
   return pump([
     gulp.src(dir.src.css),
     gIf(isDevelopment, changed(dir.build.css)),
-    gulp.dest(isDevelopment?dir.build.css:dir.dist.css),
+    gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
   ], cb);
 });
 
-gulp.task('scss', function(cb) {
+gulp.task('scss', function (cb) {
   return pump([
     gulp.src(dir.src.scss),
     gIf(isDevelopment, changed(dir.build.css)),
@@ -98,25 +98,25 @@ gulp.task('scss', function(cb) {
       browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6']
     }),
     gIf(isDevelopment, sourcemaps.write('./')),
-    gulp.dest(isDevelopment?dir.build.css:dir.dist.css),
+    gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
   ], cb);
 });
 
-gulp.task('js', function(cb) {
+gulp.task('js', function (cb) {
   return pump([
-    gulp.src(dir.src.js, {allowEmpty: true}),
+    gulp.src(dir.src.js, { allowEmpty: true }),
     gIf(isDevelopment, sourcemaps.init()),
     bro({
       entries: ['index.js'],
       paths: ['.', '/node_modules'],
       transform: [
-        babelify.configure({presets: ['env']}),
+        babelify.configure({ presets: ['env'] }),
         [
           'uglifyify', {
             global: true,
-            compress: {
-              passes: 2
-            }
+            // compress: {
+            //   passes: 2
+            // }
           }
         ]
       ]
@@ -125,33 +125,45 @@ gulp.task('js', function(cb) {
       basename: 'script'
     }),
     gIf(isDevelopment, sourcemaps.write()),
-    gulp.dest(isDevelopment?dir.build.js:dir.dist.js),
+    gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
   ], cb);
 });
 
-gulp.task('img', function(cb) {
+gulp.task('img', function (cb) {
   return pump([
     gulp.src(dir.src.img),
     gIf(isDevelopment, changed(dir.build.img)),
-    gIf(!isDevelopment, imagemin({
-      progressive: true,
-      svgoPlugins: [{removeViewBox: false}],
-      use: [pngquant()],
-      interlaced: true
-    })),
-    gulp.dest(isDevelopment?dir.build.img:dir.dist.img),
+    // gIf(!isDevelopment, imagemin({
+    //   progressive: true,
+    //   svgoPlugins: [{removeViewBox: false}],
+    //   // use: [pngquant()],
+
+    //   interlaced: true
+    // })),
+    gIf(!isDevelopment, imagemin([
+      imagemin.gifsicle({ interlaced: true }),
+      imagemin.jpegtran({ progressive: true }),
+      imagemin.optipng({ optimizationLevel: 2 }),
+      imagemin.svgo({
+        plugins: [
+          { removeViewBox: true },
+          { cleanupIDs: false }
+        ]
+      })
+    ])),
+    gulp.dest(isDevelopment ? dir.build.img : dir.dist.img),
   ], cb);
 });
 
-gulp.task('fonts', function(cb) {
+gulp.task('fonts', function (cb) {
   return pump([
-    gulp.src(dir.src.fonts, {allowEmpty: true}),
+    gulp.src(dir.src.fonts, { allowEmpty: true }),
     gIf(isDevelopment, changed(dir.build.fonts)),
-    gulp.dest(isDevelopment?dir.build.fonts:dir.dist.fonts),
+    gulp.dest(isDevelopment ? dir.build.fonts : dir.dist.fonts),
   ], cb);
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function () {
   gulp.watch(dir.watch.scss, gulp.series('scss'));
   gulp.watch(dir.watch.html, gulp.series('html'));
   gulp.watch(dir.watch.js, gulp.series('js'));
@@ -159,7 +171,7 @@ gulp.task('watch', function() {
   gulp.watch(dir.watch.fonts, gulp.series('fonts'));
 });
 
-gulp.task('server', function() {
+gulp.task('server', function () {
   bsync.init(browserSyncConfig);
   bsync.watch("src/**/*.*").on('change', bsync.reload);
 });
