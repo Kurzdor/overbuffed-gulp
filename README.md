@@ -1,6 +1,6 @@
 # overbuffed-gulp
 
-## Installa packages
+## Install all packages
 ```sh
 $ npm i
 ```
