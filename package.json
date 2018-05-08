@@ -1,6 +1,6 @@
 {
   "name": "overbuffed-gulp",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "overbuffed-gulp is boilerplate with gulp, scss, babel, etc.",
   "main": "index.js",
   "scripts": {
