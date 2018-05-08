@@ -15,10 +15,10 @@
   "author": "Kurzdor",
   "license": "ISC",
   "devDependencies": {
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-preset-env": "^1.6.1",
     "babelify": "^8.0.0",
-    "browser-sync": "^2.23.6",
+    "browser-sync": "^2.24.4",
     "gulp": "^4.0.0",
     "gulp-autoprefixer": "^4.1.0",
     "gulp-babel": "^7.0.1",
@@ -28,22 +28,17 @@
     "gulp-if": "^2.0.2",
     "gulp-imagemin": "^4.1.0",
     "gulp-rename": "^1.2.2",
-    "gulp-sass": "^3.1.0",
+    "gulp-sass": "^3.2.1",
     "gulp-sourcemaps": "^2.6.4",
-    "imagemin-pngquant": "^5.0.1",
+    "imagemin-pngquant": "^5.1.0",
     "pump": "^3.0.0",
     "uglifyify": "^4.0.5"
   },
   "dependencies": {
-    "animate.css": "^3.6.1",
     "aos": "^2.2.0",
     "jquery": "^3.3.1",
-    "jquery.scrollbar": "^0.2.11",
-    "modern-normalize": "^0.4.0",
     "normalize-scss": "^7.0.1",
     "objectFitPolyfill": "^2.1.1",
-    "swiper": "^4.2.0",
-    "video.js": "^6.7.3",
-    "wow.js": "^1.2.2"
+    "swiper": "^4.2.0"
   }
 }
