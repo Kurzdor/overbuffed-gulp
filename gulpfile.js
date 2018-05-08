@@ -13,6 +13,7 @@ var rename = require('gulp-rename');
 var changed = require('gulp-changed');
 var gIf = require('gulp-if');
 var imagemin = require('gulp-imagemin');
+var cachebust = require('gulp-cache-bust');
 
 var dir = {
   builddist: './tmp/build/',
@@ -54,7 +55,8 @@ var browserSyncConfig = {
   tunnel: false,
   host: 'localhost',
   port: 9000,
-  logPrefix: 'overbuffed-gulp'
+  logPrefix: 'overbuffed-gulp',
+  open: false
 };
 
 var isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
@@ -72,6 +74,9 @@ gulp.task('html', function (cb) {
   return pump([
     gulp.src(dir.src.html),
     gIf(isDevelopment, changed(dir.build.html)),
+    cachebust({
+      type: 'timestamp'
+    }),
     gulp.dest(isDevelopment ? dir.build.html : dir.dist.html),
   ], cb);
 });
