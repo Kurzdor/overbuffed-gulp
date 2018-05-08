@@ -1,13 +1,9 @@
 # overbuffed-gulp
 
-## Warning
-Supports Linux-based systems only or WSL (Windows Subsystem for Linux)!
-
-## Installation
+## Installa packages
 ```sh
 $ npm i
 ```
-!! If any error occures then try again  !!
 
 ## Launch compiling and live-server/live-reload
 ```sh
