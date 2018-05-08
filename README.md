@@ -1,6 +1,4 @@
-# overbuffed-gulp
-v. 1.7.1
----
+# overbuffed-gulp <br> v. 1.7.1
 
 ## Install all packages
 ```sh
