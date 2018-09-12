@@ -10,8 +10,7 @@
     "js-only": "NODE_ENV=p npx gulp webpack",
     "scss-js": "NODE_ENV=p npx gulp scss webpack",
     "no-webpack": "npx gulp build-dev-no-webpack",
-    "no-webpack-prod": "NODE_ENV=p npx gulp build-prod-no-webpack",
-    "test": "xo --prettier src/js/script.js && ava"
+    "no-webpack-prod": "NODE_ENV=p npx gulp build-prod-no-webpack"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,3 @@
-import $ from 'jquery';
-
-// window.jQuery = $;
-// window.jquery = $;
+// Start writing your ES6 JS here
+// eslint-disable-next-line no-console
+console.log('Test');
