@@ -1,4 +1,6 @@
-# overbuffed-gulp <br> <small>v. 1.8.0</small>
+[![Build Status](https://travis-ci.org/Kurzdor/overbuffed-gulp.svg?branch=master)](https://travis-ci.org/Kurzdor/overbuffed-gulp)
+[![Greenkeeper badge](https://badges.greenkeeper.io/Kurzdor/overbuffed-gulp.svg)](https://greenkeeper.io/)
+# overbuffed-gulp <br> <small>v. 1.9.0</small>
 
 ## Install all packages
 ```sh
