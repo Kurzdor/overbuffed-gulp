@@ -44,7 +44,7 @@
   "dependencies": {
     "air-datepicker": "^2.2.3",
     "aos": "^2.3.3",
-    "inputmask": "^4.0.0",
+    "inputmask": "^4.0.1",
     "jquery": "^3.3.1",
     "normalize-scss": "^7.0.1",
     "objectFitPolyfill": "^2.1.1",
