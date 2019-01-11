@@ -34,7 +34,7 @@
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.1",
     "gulp-sourcemaps": "^2.6.4",
-    "imagemin-pngquant": "^6.0.0",
+    "imagemin-pngquant": "^7.0.0",
     "pump": "^3.0.0",
     "webpack": "^4.18.0",
     "webpack-cli": "^3.1.0",
