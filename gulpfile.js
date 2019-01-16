@@ -1,68 +1,74 @@
 'use strict';
 
-var gulp = require('gulp');
-var bsync = require('browser-sync');
-var pump = require('pump');
-var sourcemaps = require('gulp-sourcemaps');
-var scss = require('gulp-sass');
-var prefix = require('gulp-autoprefixer');
-var rename = require('gulp-rename');
-var changed = require('gulp-changed');
-var gIf = require('gulp-if');
-var imagemin = require('gulp-imagemin');
-var cachebust = require('gulp-cache-bust');
-var webpack = require('webpack');
-var gulpWebpack = require('webpack-stream');
+const gulp = require('gulp');
+const del = require('del');
+const bsync = require('browser-sync');
+const pump = require('pump');
+const fileInclude = require('gulp-file-include');
+const sourcemaps = require('gulp-sourcemaps');
+const scss = require('gulp-sass');
+const prefix = require('gulp-autoprefixer');
+const rename = require('gulp-rename');
+const changed = require('gulp-changed');
+const gIf = require('gulp-if');
+const imagemin = require('gulp-imagemin');
+const cachebust = require('gulp-cache-bust');
+const webpack = require('webpack');
+const gulpWebpack = require('webpack-stream');
 
-var dir = {
-  builddist: './tmp/build/',
-  build: {
-    html: './tmp/build/',
-    js: './tmp/build/static/js/',
-    img: './tmp/build/static/images/',
-    css: './tmp/build/static/css/',
-    fonts: './tmp/build/static/fonts/'
-  },
+const dir = {
   dist: {
     html: 'dist/',
     js: 'dist/static/js/',
     img: 'dist/static/images/',
     css: 'dist/static/css/',
-    fonts: 'dist/static/fonts/'
+    fonts: 'dist/static/fonts/',
+    public: 'dist/static/public/',
   },
+  build: {
+    html: './tmp/build/',
+    js: './tmp/build/static/js/',
+    img: './tmp/build/static/images/',
+    css: './tmp/build/static/css/',
+    fonts: './tmp/build/static/fonts/',
+    public: './tmp/build/public/',
+  },
+  builddist: './tmp/build/',
   src: {
     html: 'src/**/*.html',
     js: 'src/js/index.js',
     css: 'src/css/*.css',
     scss: 'src/scss/style.scss',
     img: 'src/images/**/*.*',
-    fonts: 'src/fonts/**/*.*'
+    fonts: 'src/fonts/**/*.*',
+    public: 'src/public/**/*.*',
   },
   watch: {
-    html: 'src/**/*.html',
+    html: ['src/**/*.html', 'src/partials/**/*.htm'],
     js: 'src/js/**/*.js',
     scss: 'src/scss/**/*.scss',
     img: 'src/images/**/*.*',
-    fonts: 'src/fonts/**/*.*'
-  }
+    fonts: 'src/fonts/**/*.*',
+    public: 'src/public/**/*.*',
+  },
 };
 
-var browserSyncConfig = {
+const browserSyncConfig = {
   server: {
-    baseDir: dir.builddist
+    baseDir: dir.builddist,
   },
   tunnel: false,
   host: 'localhost',
   port: 9000,
   logPrefix: 'overbuffed-gulp',
   logConnections: true,
-  ghostMode: false
+  ghostMode: false,
 };
 
-var isDevelopment =
+const isDevelopment =
   !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 
-var gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod';
+const gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod';
 
 console.log(
   isDevelopment
@@ -70,21 +76,30 @@ console.log(
     : '[OVERBUFFED-GULP] Building production...'
 );
 
-gulp.task('favicon', function() {
+gulp.task('clean', function() {
+  return gIf(isDevelopment, del('./tmp/**/*.*'), del('./dist/**/*.*'));
+});
+
+gulp.task('public', function() {
   return gulp
-    .src('src/favicon.ico', { allowEmpty: true })
-    .pipe(gulp.dest(isDevelopment ? dir.build.html : dir.dist.html));
+    .src(dir.src.public, { allowEmpty: true })
+    .pipe(gulp.dest(isDevelopment ? dir.build.public : dir.dist.public));
 });
 
 gulp.task('html', function(cb) {
   return pump(
     [
       gulp.src(dir.src.html),
-      gIf(isDevelopment, changed(dir.build.html)),
-      cachebust({
-        type: 'timestamp'
+      // Issue: after editing partial files Gulp-changed prevents to recompile *.html's
+      // gIf(isDevelopment, changed(dir.build.html)),
+      fileInclude({
+        prefix: '@@',
+        basepath: 'src/partials/',
       }),
-      gulp.dest(isDevelopment ? dir.build.html : dir.dist.html)
+      cachebust({
+        type: 'timestamp',
+      }),
+      gulp.dest(isDevelopment ? dir.build.html : dir.dist.html),
     ],
     cb
   );
@@ -95,10 +110,10 @@ gulp.task('css', function(cb) {
     [
       gulp.src(dir.src.css, { allowEmpty: true }),
       prefix({
-        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6']
+        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6'],
       }),
       gIf(isDevelopment, changed(dir.build.css)),
-      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css)
+      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
     ],
     cb
   );
@@ -114,21 +129,21 @@ gulp.task('scss', function(cb) {
         isDevelopment,
         scss({
           outputStyle: 'expanded',
-          includePaths: ['./node_modules/']
+          includePaths: ['./node_modules/'],
         }).on('error', scss.logError)
       ),
       gIf(
         !isDevelopment,
         scss({
           outputStyle: 'compressed',
-          includePaths: ['./node_modules/']
+          includePaths: ['./node_modules/'],
         }).on('error', scss.logError)
       ),
       prefix({
-        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6']
+        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6'],
       }),
       gIf(isDevelopment, sourcemaps.write('./')),
-      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css)
+      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
     ],
     cb
   );
@@ -140,10 +155,10 @@ gulp.task('js-no-webpack', function(cb) {
       gulp.src(dir.src.js, { allowEmpty: true }),
       gIf(isDevelopment, sourcemaps.init()),
       rename({
-        basename: 'script'
+        basename: 'script',
       }),
       gIf(isDevelopment, sourcemaps.write()),
-      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js)
+      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
     ],
     cb
   );
@@ -161,7 +176,7 @@ gulp.task('webpack', function(cb) {
         !isDevelopment,
         gulpWebpack(require('./webpack.config.prod.js'), webpack)
       ),
-      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js)
+      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
     ],
     cb
   );
@@ -179,11 +194,11 @@ gulp.task('img', function(cb) {
           imagemin.jpegtran({ progressive: true }),
           imagemin.optipng({ optimizationLevel: 2 }),
           imagemin.svgo({
-            plugins: [{ removeViewBox: true }, { cleanupIDs: false }]
-          })
+            plugins: [{ removeViewBox: true }, { cleanupIDs: false }],
+          }),
         ])
       ),
-      gulp.dest(isDevelopment ? dir.build.img : dir.dist.img)
+      gulp.dest(isDevelopment ? dir.build.img : dir.dist.img),
     ],
     cb
   );
@@ -194,7 +209,7 @@ gulp.task('fonts', function(cb) {
     [
       gulp.src(dir.src.fonts, { allowEmpty: true }),
       gIf(isDevelopment, changed(dir.build.fonts)),
-      gulp.dest(isDevelopment ? dir.build.fonts : dir.dist.fonts)
+      gulp.dest(isDevelopment ? dir.build.fonts : dir.dist.fonts),
     ],
     cb
   );
@@ -206,6 +221,7 @@ gulp.task('watch', function() {
   gulp.watch(dir.watch.js, gulp.series('webpack'));
   gulp.watch(dir.watch.img, gulp.series('img'));
   gulp.watch(dir.watch.fonts, gulp.series('fonts'));
+  gulp.watch(dir.watch.public, gulp.series('public'));
 });
 
 gulp.task('watch-alt', function() {
@@ -214,23 +230,25 @@ gulp.task('watch-alt', function() {
   gulp.watch(dir.watch.js, gulp.series('js-no-webpack'));
   gulp.watch(dir.watch.img, gulp.series('img'));
   gulp.watch(dir.watch.fonts, gulp.series('fonts'));
+  gulp.watch(dir.watch.public, gulp.series('public'));
 });
 
 gulp.task('server', function() {
   bsync.init(browserSyncConfig);
-  bsync.watch('tmp/**/*.*').on('change', bsync.reload);
+  bsync.watch('./tmp/build/**/*.*').on('change', bsync.reload);
 });
 
 gulp.task(
   'build-dev',
   gulp.series(
+    'clean',
     'img',
     'scss',
     'css',
     'webpack',
     'fonts',
+    'public',
     'html',
-    'favicon',
     gulp.parallel('watch', 'server')
   )
 );
@@ -238,20 +256,22 @@ gulp.task(
 gulp.task(
   'build-prod',
   gulp.series(
-    gulp.parallel('img', 'scss', 'css', 'webpack', 'fonts', 'html', 'favicon')
+    'clean',
+    gulp.parallel('img', 'scss', 'css', 'webpack', 'fonts', 'public', 'html')
   )
 );
 
 gulp.task(
   'build-dev-no-webpack',
   gulp.series(
+    'clean',
     'img',
     'scss',
     'css',
     'js-no-webpack',
     'fonts',
+    'public',
     'html',
-    'favicon',
     gulp.parallel('watch-alt', 'server')
   )
 );
@@ -259,14 +279,15 @@ gulp.task(
 gulp.task(
   'build-prod-no-webpack',
   gulp.series(
+    'clean',
     gulp.parallel(
       'img',
       'scss',
       'css',
       'js-no-webpack',
       'fonts',
-      'html',
-      'favicon'
+      'public',
+      'html'
     )
   )
 );

@@ -1,3 +1,5 @@
+@import 'fonts';
+
 * {
   box-sizing: border-box;
 
@@ -18,14 +20,12 @@ html {
 }
 
 body {
-  font-family: sans-serif;
-  font-weight: 200;
-  text-rendering: geometricPrecision;
   font-size: 1rem;
   font-family: 'FontName', sans-serif;
   font-weight: 400;
   color: $black;
   background: $white;
+  text-rendering: geometricPrecision;
 
   .overflow {
     overflow: hidden;

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>overbuffed-gulp entry page</title>
-  <link rel="stylesheet" href="./static/css/style.css">
-</head>
-<body>
+<html lang="!_INSERT_LANG_!">
 
-    <script src="./static/js/script.js"></script>
+<head>
+  @@include('./meta.htm')
+  <title>overbuffed-gulp entry page</title>
+  @@include('styles.htm')
+</head>
+
+<body>
+  @@include('./header.htm')
+  @@include('./footer.htm')
+
+  @@include('./scripts.htm')
 </body>
+
 </html>
