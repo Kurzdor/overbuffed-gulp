@@ -1,6 +1,6 @@
 {
   "name": "overbuffed-gulp",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "overbuffed-gulp is a boilerplate based on Gulp@4, SCSS preprocessor, Webpack, HTML imports, etc.",
   "scripts": {
     "dev": "npm start",
