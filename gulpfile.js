@@ -1,24 +1,27 @@
-'use strict';
+'use strict'
 
-const gulp = require('gulp');
-const del = require('del');
-const bsync = require('browser-sync');
-const pump = require('pump');
-const fileInclude = require('gulp-file-include');
-const sourcemaps = require('gulp-sourcemaps');
-const scss = require('gulp-sass');
-const prefix = require('gulp-autoprefixer');
-const rename = require('gulp-rename');
-const changed = require('gulp-changed');
-const gIf = require('gulp-if');
-const imagemin = require('gulp-imagemin');
-const cachebust = require('gulp-cache-bust');
-const webpack = require('webpack');
-const gulpWebpack = require('webpack-stream');
+const gulp = require('gulp')
+const del = require('del')
+const bsync = require('browser-sync')
+const pump = require('pump')
+const twig = require('gulp-twig')
+const data = require('./data')
+const sourcemaps = require('gulp-sourcemaps')
+const scss = require('gulp-sass')
+const prefix = require('gulp-autoprefixer')
+const rename = require('gulp-rename')
+const changed = require('gulp-changed')
+const gIf = require('gulp-if')
+const imagemin = require('gulp-imagemin')
+const cachebust = require('gulp-cache-bust')
+const webpack = require('webpack')
+const gulpWebpack = require('webpack-stream')
+
+console.log(data)
 
 const dir = {
   dist: {
-    html: 'dist/',
+    twig: 'dist/',
     js: 'dist/static/js/',
     img: 'dist/static/images/',
     css: 'dist/static/css/',
@@ -26,7 +29,7 @@ const dir = {
     public: 'dist/static/public/',
   },
   build: {
-    html: './tmp/build/',
+    twig: './tmp/build/',
     js: './tmp/build/static/js/',
     img: './tmp/build/static/images/',
     css: './tmp/build/static/css/',
@@ -35,7 +38,8 @@ const dir = {
   },
   builddist: './tmp/build/',
   src: {
-    html: 'src/**/*.html',
+    twig: 'src/*.twig',
+    twigBase: 'src/components',
     js: 'src/js/index.js',
     css: 'src/css/*.css',
     scss: 'src/scss/style.scss',
@@ -44,14 +48,14 @@ const dir = {
     public: 'src/public/**/*.*',
   },
   watch: {
-    html: ['src/**/*.html', 'src/partials/**/*.htm'],
+    twig: ['src/**/*.twig'],
     js: 'src/js/**/*.js',
     scss: 'src/scss/**/*.scss',
     img: 'src/images/**/*.*',
     fonts: 'src/fonts/**/*.*',
     public: 'src/public/**/*.*',
   },
-};
+}
 
 const browserSyncConfig = {
   server: {
@@ -63,47 +67,49 @@ const browserSyncConfig = {
   logPrefix: 'overbuffed-gulp',
   logConnections: true,
   ghostMode: false,
-};
+}
 
 const isDevelopment =
-  !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+  !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
 
-const gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod';
+const gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod'
 
 console.log(
   isDevelopment
     ? '[OVERBUFFED-GULP] Building dev...'
     : '[OVERBUFFED-GULP] Building production...'
-);
+)
 
 gulp.task('clean', function() {
-  return gIf(isDevelopment, del('./tmp/**/*.*'), del('./dist/**/*.*'));
-});
+  return gIf(isDevelopment, del('./tmp/**/*.*'), del('./dist/**/*.*'))
+})
 
 gulp.task('public', function() {
   return gulp
     .src(dir.src.public, { allowEmpty: true })
-    .pipe(gulp.dest(isDevelopment ? dir.build.public : dir.dist.public));
-});
+    .pipe(
+      gulp.dest(isDevelopment ? dir.build.public : dir.dist.public)
+    )
+})
 
-gulp.task('html', function(cb) {
+gulp.task('twig', function(cb) {
   return pump(
     [
-      gulp.src(dir.src.html),
-      // Issue: after editing partial files Gulp-changed prevents to recompile *.html's
-      // gIf(isDevelopment, changed(dir.build.html)),
-      fileInclude({
-        prefix: '@@',
-        basepath: 'src/partials/',
+      gulp.src(dir.src.twig),
+      twig({
+        data,
+        base: 'src/components',
+        errorLogToConsole: true,
+        cache: true,
       }),
       cachebust({
         type: 'timestamp',
       }),
-      gulp.dest(isDevelopment ? dir.build.html : dir.dist.html),
+      gulp.dest(isDevelopment ? dir.build.twig : dir.dist.twig),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('css', function(cb) {
   return pump(
@@ -116,8 +122,8 @@ gulp.task('css', function(cb) {
       gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('scss', function(cb) {
   return pump(
@@ -146,8 +152,8 @@ gulp.task('scss', function(cb) {
       gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('js-no-webpack', function(cb) {
   return pump(
@@ -161,8 +167,8 @@ gulp.task('js-no-webpack', function(cb) {
       gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('webpack', function(cb) {
   return pump(
@@ -179,8 +185,8 @@ gulp.task('webpack', function(cb) {
       gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('img', function(cb) {
   return pump(
@@ -201,8 +207,8 @@ gulp.task('img', function(cb) {
       gulp.dest(isDevelopment ? dir.build.img : dir.dist.img),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('fonts', function(cb) {
   return pump(
@@ -212,31 +218,31 @@ gulp.task('fonts', function(cb) {
       gulp.dest(isDevelopment ? dir.build.fonts : dir.dist.fonts),
     ],
     cb
-  );
-});
+  )
+})
 
 gulp.task('watch', function() {
-  gulp.watch(dir.watch.scss, gulp.series('scss'));
-  gulp.watch(dir.watch.html, gulp.series('html'));
-  gulp.watch(dir.watch.js, gulp.series('webpack'));
-  gulp.watch(dir.watch.img, gulp.series('img'));
-  gulp.watch(dir.watch.fonts, gulp.series('fonts'));
-  gulp.watch(dir.watch.public, gulp.series('public'));
-});
+  gulp.watch(dir.watch.scss, gulp.series('scss'))
+  gulp.watch(dir.watch.twig, gulp.series('twig'))
+  gulp.watch(dir.watch.js, gulp.series('webpack'))
+  gulp.watch(dir.watch.img, gulp.series('img'))
+  gulp.watch(dir.watch.fonts, gulp.series('fonts'))
+  gulp.watch(dir.watch.public, gulp.series('public'))
+})
 
 gulp.task('watch-alt', function() {
-  gulp.watch(dir.watch.scss, gulp.series('scss'));
-  gulp.watch(dir.watch.html, gulp.series('html'));
-  gulp.watch(dir.watch.js, gulp.series('js-no-webpack'));
-  gulp.watch(dir.watch.img, gulp.series('img'));
-  gulp.watch(dir.watch.fonts, gulp.series('fonts'));
-  gulp.watch(dir.watch.public, gulp.series('public'));
-});
+  gulp.watch(dir.watch.scss, gulp.series('scss'))
+  gulp.watch(dir.watch.twig, gulp.series('twig'))
+  gulp.watch(dir.watch.js, gulp.series('js-no-webpack'))
+  gulp.watch(dir.watch.img, gulp.series('img'))
+  gulp.watch(dir.watch.fonts, gulp.series('fonts'))
+  gulp.watch(dir.watch.public, gulp.series('public'))
+})
 
 gulp.task('server', function() {
-  bsync.init(browserSyncConfig);
-  bsync.watch('./tmp/build/**/*.*').on('change', bsync.reload);
-});
+  bsync.init(browserSyncConfig)
+  bsync.watch('./tmp/build/**/*.*').on('change', bsync.reload)
+})
 
 gulp.task(
   'build-dev',
@@ -248,18 +254,26 @@ gulp.task(
     'webpack',
     'fonts',
     'public',
-    'html',
+    'twig',
     gulp.parallel('watch', 'server')
   )
-);
+)
 
 gulp.task(
   'build-prod',
   gulp.series(
     'clean',
-    gulp.parallel('img', 'scss', 'css', 'webpack', 'fonts', 'public', 'html')
+    gulp.parallel(
+      'img',
+      'scss',
+      'css',
+      'webpack',
+      'fonts',
+      'public',
+      'twig'
+    )
   )
-);
+)
 
 gulp.task(
   'build-dev-no-webpack',
@@ -271,10 +285,10 @@ gulp.task(
     'js-no-webpack',
     'fonts',
     'public',
-    'html',
+    'twig',
     gulp.parallel('watch-alt', 'server')
   )
-);
+)
 
 gulp.task(
   'build-prod-no-webpack',
@@ -287,9 +301,9 @@ gulp.task(
       'js-no-webpack',
       'fonts',
       'public',
-      'html'
+      'twig'
     )
   )
-);
+)
 
-gulp.task('default', gulp.series(gulpBuildMode));
+gulp.task('default', gulp.series(gulpBuildMode))

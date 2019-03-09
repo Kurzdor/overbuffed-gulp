@@ -3,6 +3,8 @@
   "version": "2.0.0",
   "description": "overbuffed-gulp is a boilerplate based on Gulp@4, SCSS preprocessor, Webpack, HTML imports, etc.",
   "scripts": {
+    "dev": "npm start",
+    "prod": "npm run build",
     "start": "npx gulp",
     "build": "NODE_ENV=p npx gulp",
     "scss-only": "NODE_ENV=p npx gulp scss",
@@ -43,6 +45,7 @@
     "air-datepicker": "^2.2.3",
     "aos": "^3.0.0-beta.6",
     "del": "^4.0.0",
+    "gulp-twig": "^1.2.0",
     "inputmask": "^4.0.6",
     "jquery": "^3.3.1",
     "normalize-scss": "^7.0.1",
