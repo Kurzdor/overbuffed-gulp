@@ -28,7 +28,7 @@
     "gulp-autoprefixer": "^6.0.0",
     "gulp-babel": "^8.0.0",
     "gulp-cache-bust": "^1.4.0",
-    "gulp-changed": "^3.2.0",
+    "gulp-changed": "^4.0.0",
     "gulp-file-include": "^2.0.1",
     "gulp-if": "^2.0.2",
     "gulp-imagemin": "^5.0.3",
