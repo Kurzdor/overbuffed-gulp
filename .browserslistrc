@@ -1,0 +1,11 @@
+[production]
+> 0.25%
+not dead
+ie 11
+not OperaMini all
+
+[modern]
+last 2 chrome versions
+last 2 firefox versions
+last 2 safari versions
+ie 11

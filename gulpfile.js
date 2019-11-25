@@ -1,309 +1,225 @@
-'use strict'
-
-const gulp = require('gulp')
+const {
+  src,
+  dest,
+  series,
+  parallel,
+  watch,
+  lastRun,
+} = require('gulp')
 const del = require('del')
-const bsync = require('browser-sync')
-const pump = require('pump')
-const twig = require('gulp-twig')
-const data = require('./data')
-const sourcemaps = require('gulp-sourcemaps')
-const scss = require('gulp-sass')
-const prefix = require('gulp-autoprefixer')
-const rename = require('gulp-rename')
-const changed = require('gulp-changed')
-const gIf = require('gulp-if')
-const imagemin = require('gulp-imagemin')
-const cachebust = require('gulp-cache-bust')
+const _if = require('gulp-if')
+const smap = require('gulp-sourcemaps')
+const sass = require('gulp-sass')
+const postcss = require('gulp-postcss')
 const webpack = require('webpack')
-const gulpWebpack = require('webpack-stream')
+const webpackStream = require('webpack-stream')
+const imgmin = require('gulp-imagemin')
+const bs = require('browser-sync')
 
-console.log(data)
+const PORT = +process.env.PORT || 9000
+const isProduction = process.env.NODE_ENV === 'production'
+const variant = isProduction ? 'prod' : 'dev'
+const quick = !!!process.env.QUICK
 
-const dir = {
-  dist: {
-    twig: 'dist/',
-    js: 'dist/static/js/',
-    img: 'dist/static/images/',
-    css: 'dist/static/css/',
-    fonts: 'dist/static/fonts/',
-    public: 'dist/static/public/',
+const base = {
+  dev: './dev/',
+  prod: './dist/',
+}
+
+const paths = {
+  prebuild: {
+    dev: base.dev,
+    prod: base.prod,
   },
-  build: {
-    twig: './tmp/build/',
-    js: './tmp/build/static/js/',
-    img: './tmp/build/static/images/',
-    css: './tmp/build/static/css/',
-    fonts: './tmp/build/static/fonts/',
-    public: './tmp/build/public/',
+  public: {
+    src: 'public/**/*.*',
+    dev: base.dev + 'public/',
+    prod: base.prod + 'public/',
+    watch: 'public/**/*.*',
   },
-  builddist: './tmp/build/',
-  src: {
-    twig: 'src/*.twig',
-    twigBase: 'src/components',
-    js: 'src/js/index.js',
-    css: 'src/css/*.css',
-    scss: 'src/scss/style.scss',
-    img: 'src/images/**/*.*',
-    fonts: 'src/fonts/**/*.*',
-    public: 'src/public/**/*.*',
+  html: {
+    src: 'src/views/*.html',
+    dev: base.dev,
+    prod: base.prod,
+    watch: 'src/*.html',
   },
-  watch: {
-    twig: ['src/**/*.twig'],
-    js: 'src/js/**/*.js',
-    scss: 'src/scss/**/*.scss',
-    img: 'src/images/**/*.*',
-    fonts: 'src/fonts/**/*.*',
-    public: 'src/public/**/*.*',
+  images: {
+    src: 'src/images/**/*.{jpg|jpeg|svg|png|webp}',
+    dev: base.dev + 'images/',
+    prod: base.prod + 'images/',
+    watch: 'src/images/**/*.{jpg|jpeg|svg|png|webp}',
+  },
+  fonts: {
+    src: 'src/fonts/**/*.{ttf|otf|woff|woff2|svg}',
+    dev: base.dev + 'fonts/',
+    prod: base.prod + 'fonts/',
+    watch: 'src/fonts/**/*.{ttf|otf|woff|woff2|svg}',
+  },
+  scss: {
+    src: 'src/scss/style.scss',
+    dev: base.dev + 'css/',
+    prod: base.prod + 'css/',
+    watch: 'src/scss/**/*.scss',
+  },
+  js: {
+    src: 'src/js/index.js',
+    dev: base.dev + 'js/',
+    prod: base.prod + 'js/',
+    watch: 'src/js/**/*.js',
   },
 }
 
-const browserSyncConfig = {
-  server: {
-    baseDir: dir.builddist,
+const watchTarget = base.dev + '**/*.*'
+
+const cfg = {
+  scss: {
+    dev: {
+      outputStyle: 'expanded',
+      includePaths: ['./node_modules/'],
+    },
+    prod: {
+      outputStyle: 'compressed',
+      includePaths: ['./node_modules/'],
+    },
+    quick: {
+      outputStyle: 'expanded',
+      includePaths: ['./node_modules/'],
+    },
   },
-  tunnel: false,
-  host: 'localhost',
-  port: 9000,
-  logPrefix: 'overbuffed-gulp',
-  logConnections: true,
-  ghostMode: false,
+  webpack: {
+    dev: {
+      mode: 'development',
+      devtool: 'source-map',
+      output: {
+        filename: 'script.js',
+      },
+    },
+    prod: {
+      mode: 'production',
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            exclude: /(node_modules)/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: ['@babel/preset-env'],
+                plugins: [
+                  '@babel/plugin-proposal-object-rest-spread',
+                ],
+              },
+            },
+          },
+        ],
+      },
+      output: {
+        filename: 'script.js',
+      },
+    },
+    quick: {
+      mode: 'production',
+      optimization: {
+        minimize: false,
+      },
+      output: {
+        filename: 'script.js',
+      },
+    },
+  },
+  serve: {
+    server: {
+      baseDir: base.dev,
+    },
+    tunnel: false,
+    port: PORT,
+    logConnections: true,
+    ghostMode: true,
+  },
 }
 
-const isDevelopment =
-  !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+const prebuild = () => del(paths.prebuild[variant])
 
-const gulpBuildMode = isDevelopment ? 'build-dev' : 'build-prod'
+const public = () =>
+  src(paths.public.src, {
+    since: lastRun(public),
+    allowEmpty: true,
+  }).pipe(dest(paths.public[variant]))
 
-console.log(
-  isDevelopment
-    ? '[OVERBUFFED-GULP] Building dev...'
-    : '[OVERBUFFED-GULP] Building production...'
-)
+const html = () =>
+  src(paths.html.src, {
+    since: lastRun(html),
+    allowEmpty: true,
+  }).pipe(dest(paths.html[variant]))
 
-gulp.task('clean', function() {
-  return gIf(isDevelopment, del('./tmp/**/*.*'), del('./dist/**/*.*'))
-})
-
-gulp.task('public', function() {
-  return gulp
-    .src(dir.src.public, { allowEmpty: true })
+const images = () =>
+  src(paths.html.src, {
+    since: lastRun(images),
+    allowEmpty: true,
+  })
     .pipe(
-      gulp.dest(isDevelopment ? dir.build.public : dir.dist.public)
-    )
-})
-
-gulp.task('twig', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.twig),
-      twig({
-        data,
-        base: 'src/components',
-        errorLogToConsole: true,
-        cache: true,
-      }),
-      cachebust({
-        type: 'timestamp',
-      }),
-      gulp.dest(isDevelopment ? dir.build.twig : dir.dist.twig),
-    ],
-    cb
-  )
-})
-
-gulp.task('css', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.css, { allowEmpty: true }),
-      prefix({
-        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6'],
-      }),
-      gIf(isDevelopment, changed(dir.build.css)),
-      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
-    ],
-    cb
-  )
-})
-
-gulp.task('scss', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.scss),
-      gIf(isDevelopment, changed(dir.build.css)),
-      gIf(isDevelopment, sourcemaps.init()),
-      gIf(
-        isDevelopment,
-        scss({
-          outputStyle: 'expanded',
-          includePaths: ['./node_modules/'],
-        }).on('error', scss.logError)
-      ),
-      gIf(
-        !isDevelopment,
-        scss({
-          outputStyle: 'compressed',
-          includePaths: ['./node_modules/'],
-        }).on('error', scss.logError)
-      ),
-      prefix({
-        browsers: ['last 3 versions', 'Firefox ESR', 'Safari >= 6'],
-      }),
-      gIf(isDevelopment, sourcemaps.write('./')),
-      gulp.dest(isDevelopment ? dir.build.css : dir.dist.css),
-    ],
-    cb
-  )
-})
-
-gulp.task('js-no-webpack', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.js, { allowEmpty: true }),
-      gIf(isDevelopment, sourcemaps.init()),
-      rename({
-        basename: 'script',
-      }),
-      gIf(isDevelopment, sourcemaps.write()),
-      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
-    ],
-    cb
-  )
-})
-
-gulp.task('webpack', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.js, { allowEmpty: true }),
-      gIf(
-        isDevelopment,
-        gulpWebpack(require('./webpack.config.dev.js'), webpack)
-      ),
-      gIf(
-        !isDevelopment,
-        gulpWebpack(require('./webpack.config.prod.js'), webpack)
-      ),
-      gulp.dest(isDevelopment ? dir.build.js : dir.dist.js),
-    ],
-    cb
-  )
-})
-
-gulp.task('img', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.img),
-      gIf(isDevelopment, changed(dir.build.img)),
-      gIf(
-        !isDevelopment,
-        imagemin([
-          imagemin.gifsicle({ interlaced: true }),
-          imagemin.jpegtran({ progressive: true }),
-          imagemin.optipng({ optimizationLevel: 2 }),
-          imagemin.svgo({
-            plugins: [{ removeViewBox: true }, { cleanupIDs: false }],
-          }),
+      _if(
+        isProduction,
+        imgmin([
+          imgmin.gifsicle({ interlaced: true }),
+          imgmin.jpegtran({ progressive: true }),
+          imgmin.optipng({ optimizationLevel: 5 }),
         ])
-      ),
-      gulp.dest(isDevelopment ? dir.build.img : dir.dist.img),
-    ],
-    cb
-  )
-})
-
-gulp.task('fonts', function(cb) {
-  return pump(
-    [
-      gulp.src(dir.src.fonts, { allowEmpty: true }),
-      gIf(isDevelopment, changed(dir.build.fonts)),
-      gulp.dest(isDevelopment ? dir.build.fonts : dir.dist.fonts),
-    ],
-    cb
-  )
-})
-
-gulp.task('watch', function() {
-  gulp.watch(dir.watch.scss, gulp.series('scss'))
-  gulp.watch(dir.watch.twig, gulp.series('twig'))
-  gulp.watch(dir.watch.js, gulp.series('webpack'))
-  gulp.watch(dir.watch.img, gulp.series('img'))
-  gulp.watch(dir.watch.fonts, gulp.series('fonts'))
-  gulp.watch(dir.watch.public, gulp.series('public'))
-})
-
-gulp.task('watch-alt', function() {
-  gulp.watch(dir.watch.scss, gulp.series('scss'))
-  gulp.watch(dir.watch.twig, gulp.series('twig'))
-  gulp.watch(dir.watch.js, gulp.series('js-no-webpack'))
-  gulp.watch(dir.watch.img, gulp.series('img'))
-  gulp.watch(dir.watch.fonts, gulp.series('fonts'))
-  gulp.watch(dir.watch.public, gulp.series('public'))
-})
-
-gulp.task('server', function() {
-  bsync.init(browserSyncConfig)
-  bsync.watch('./tmp/build/**/*.*').on('change', bsync.reload)
-})
-
-gulp.task(
-  'build-dev',
-  gulp.series(
-    'clean',
-    'img',
-    'scss',
-    'css',
-    'webpack',
-    'fonts',
-    'public',
-    'twig',
-    gulp.parallel('watch', 'server')
-  )
-)
-
-gulp.task(
-  'build-prod',
-  gulp.series(
-    'clean',
-    gulp.parallel(
-      'img',
-      'scss',
-      'css',
-      'webpack',
-      'fonts',
-      'public',
-      'twig'
+      )
     )
-  )
-)
+    .pipe(dest(paths.html[variant]))
 
-gulp.task(
-  'build-dev-no-webpack',
-  gulp.series(
-    'clean',
-    'img',
-    'scss',
-    'css',
-    'js-no-webpack',
-    'fonts',
-    'public',
-    'twig',
-    gulp.parallel('watch-alt', 'server')
-  )
-)
+const fonts = () =>
+  src(paths.fonts.src, {
+    since: lastRun(fonts),
+    allowEmpty: true,
+  }).pipe(dest(paths.fonts[variant]))
 
-gulp.task(
-  'build-prod-no-webpack',
-  gulp.series(
-    'clean',
-    gulp.parallel(
-      'img',
-      'scss',
-      'css',
-      'js-no-webpack',
-      'fonts',
-      'public',
-      'twig'
+const scss = () =>
+  src(paths.scss.src, { since: lastRun(scss), allowEmpty: true })
+    .pipe(_if(!isProduction, smap.init()))
+    .pipe(sass(cfg.scss[variant]).on('error', sass.logError))
+    .pipe(postcss())
+    .pipe(_if(!isProduction, smap.write('./')))
+    .pipe(dest(paths.scss[variant]))
+
+const js = () =>
+  src(paths.js.src, { since: lastRun(js), allowEmpty: true })
+    .pipe(_if(!isProduction, smap.init()))
+    .pipe(
+      _if(
+        quick,
+        webpackStream(cfg.webpack[variant], webpack),
+        webpackStream(cfg.webpack.quick, webpack)
+      )
     )
-  )
-)
+    .pipe(_if(!isProduction, smap.write('./')))
+    .pipe(dest(paths.js[variant]))
 
-gulp.task('default', gulp.series(gulpBuildMode))
+const serve = () => {
+  bs.init(cfg.serve)
+
+  bs.watch(watchTarget).on('change', bs.reload)
+}
+
+const _watch = () => {
+  watch(paths.public.watch, public)
+  watch(paths.html.watch, html)
+  watch(paths.images.watch, images)
+  watch(paths.fonts.watch, fonts)
+  watch(paths.scss.watch, scss)
+  watch(paths.js.watch, js)
+}
+
+exports.default = isProduction
+  ? series(prebuild, parallel(public, html, scss, js, images, fonts))
+  : series(
+      prebuild,
+      public,
+      html,
+      scss,
+      js,
+      images,
+      fonts,
+      parallel(serve, _watch)
+    )
