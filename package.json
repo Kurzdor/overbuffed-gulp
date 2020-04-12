@@ -31,7 +31,7 @@
     "gulp-sass": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "postcss-flexbugs-fixes": "^4.1.0",
-    "postcss-normalize": "^8.0.1",
+    "postcss-normalize": "^9.0.0",
     "postcss-preset-env": "^6.7.0",
     "webpack": "^4.41.2",
     "webpack-stream": "^5.2.1"
