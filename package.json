@@ -28,7 +28,7 @@
     "gulp-if": "^3.0.0",
     "gulp-imagemin": "^6.2.0",
     "gulp-postcss": "^8.0.0",
-    "gulp-sass": "^4.0.2",
+    "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^2.6.5",
     "postcss-flexbugs-fixes": "^4.1.0",
     "postcss-normalize": "^8.0.1",
