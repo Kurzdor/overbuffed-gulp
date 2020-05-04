@@ -37,7 +37,7 @@
     "webpack-stream": "^5.2.1"
   },
   "dependencies": {
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.1",
     "normalize-scss": "^7.0.1"
   }
 }
